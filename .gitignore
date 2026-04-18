@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Node
+node_modules/
+dist/
+.DS_Store
+.npm
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# 开发工具生成的文件
+dev_tools/**/__pycache__/
+dev_tools/**/*.png
+dev_tools/**/*.csv
+dev_tools/**/*.pkl
+!dev_tools/model_building/svd_model.pkl
+!dev_tools/model_building/tfidf.pkl
