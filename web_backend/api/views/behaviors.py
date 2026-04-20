@@ -60,9 +60,7 @@ class UserBehaviorViewSet(viewsets.ModelViewSet):
             )
 
         behavior.refresh_from_db()
-        recommendation_engine.novel_info = None  # 触发重新加载
-        recommendation_engine._initialize()
-
+        # 不再强制重新加载模型，依赖缓存和数据库实时查询
         serializer = self.get_serializer(behavior)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -98,10 +96,7 @@ def rating_view(request):
             )
 
         behavior.refresh_from_db()
-
-        recommendation_engine.novel_info = None
-        recommendation_engine._initialize()
-
+        # 不再强制重新加载模型，依赖缓存和数据库实时查询
         return Response({'message': '评分成功'})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

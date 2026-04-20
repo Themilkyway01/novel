@@ -232,6 +232,8 @@ let searchTimeout = null
 
 const hotNovels = ref([])
 const recentNovels = ref([])
+// 跟踪已显示的热门书籍ID，避免重复推荐（最多保留最近50个）
+const displayedHotNovelIds = ref([])
 
 // 加载状态
 const hotNovelsLoading = ref(false)
@@ -434,6 +436,9 @@ const savePreference = async () => {
 
   ElMessage.success('偏好设置已保存')
 
+  // 重置已显示书籍ID列表，因为偏好已改变
+  displayedHotNovelIds.value = []
+
   // 重新加载推荐内容
   loadAll()
 }
@@ -464,11 +469,25 @@ const loadHotNovels = async () => {
     if (userStore.isLoggedIn && userStore.user) {
       params.user_id = userStore.user.id
     }
+    // 添加排除已显示书籍的逻辑
+    if (displayedHotNovelIds.value.length > 0) {
+      params.exclude = displayedHotNovelIds.value.join(',')
+    }
     console.log('加载热门推荐，参数:', params)
     const res = await getHotNovels(params)
     console.log('热门推荐结果:', res)
     // 随机打乱推荐结果
     hotNovels.value = shuffleArray(res)
+    // 将新显示的书籍ID添加到已显示列表中，避免重复，最多保留最近50个
+    res.forEach(novel => {
+      if (novel.id && !displayedHotNovelIds.value.includes(novel.id)) {
+        displayedHotNovelIds.value.push(novel.id)
+      }
+    })
+    // 限制数组大小，最多保留最近50个ID
+    if (displayedHotNovelIds.value.length > 50) {
+      displayedHotNovelIds.value = displayedHotNovelIds.value.slice(-50)
+    }
   } catch (error) {
     console.error('加载热门推荐失败:', error)
   } finally {

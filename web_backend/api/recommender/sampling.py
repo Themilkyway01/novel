@@ -37,7 +37,7 @@ class SamplingStrategy:
         if category is not None:
             sampled = candidates.sample(
                 n=min(n, len(candidates)),
-                random_state=random.randint(0, 1000)
+                random_state=random.randint(0, 1000000)
             )
             return sampled.to_dict('records')
 
@@ -64,7 +64,7 @@ class SamplingStrategy:
 
             sampled = cat_novels.sample(
                 n=min(count, len(cat_novels)),
-                random_state=random.randint(0, 1000)
+                random_state=random.randint(0, 1000000)
             )
             result.extend(sampled.to_dict('records'))
 
@@ -73,7 +73,7 @@ class SamplingStrategy:
             if not remaining.empty:
                 extra_sample = remaining.sample(
                     n=min(n - len(result), len(remaining)),
-                    random_state=random.randint(0, 1000)
+                    random_state=random.randint(0, 1000000)
                 )
                 result.extend(extra_sample.to_dict('records'))
 
@@ -81,7 +81,8 @@ class SamplingStrategy:
 
     def get_hot_recommendations(
         self, user_id=None, channel=None, category=None,
-        preferred_categories=None, n=12, skip_cache=False, sort_by_time=False
+        preferred_categories=None, n=12, skip_cache=False, sort_by_time=False,
+        extra_exclude_ids=None
     ):
         """热门推荐"""
         if preferred_categories and isinstance(preferred_categories, list):
@@ -95,9 +96,7 @@ class SamplingStrategy:
             if cached:
                 return cached
 
-        exclude_ids = []
-        if user_id:
-            exclude_ids = self.engine.get_user_reading_history(user_id)
+        
 
         if user_id is None or channel is None:
             result = self._sample_by_channel(n, exclude_ids, sort_by_time)
@@ -161,14 +160,14 @@ class SamplingStrategy:
                             if len(top_50) > 0:
                                 cat_sampled = top_50.sample(
                                     n=min(cat_count, len(top_50)),
-                                    random_state=random.randint(0, 1000)
+                                    random_state=random.randint(0, 1000000)
                                 )
                             else:
                                 cat_sampled = cat_novels_sorted.head(cat_count)
                         else:
                             cat_sampled = cat_novels.sample(
                                 n=min(cat_count, len(cat_novels)),
-                                random_state=random.randint(0, 1000)
+                                random_state=random.randint(0, 1000000)
                             )
                         sampled.extend(cat_sampled.to_dict('records'))
                     result.extend(sampled[:count])
@@ -179,14 +178,14 @@ class SamplingStrategy:
                         if len(top_50) > 0:
                             sampled = top_50.sample(
                                 n=min(count, len(top_50)),
-                                random_state=random.randint(0, 1000)
+                                random_state=random.randint(0, 1000000)
                             )
                         else:
                             sampled = sorted_novels.head(count)
                     else:
                         sampled = channel_novels.sample(
                             n=min(count, len(channel_novels)),
-                            random_state=random.randint(0, 1000)
+                            random_state=random.randint(0, 1000000)
                         )
                     result.extend(sampled.to_dict('records'))
 
@@ -234,7 +233,7 @@ class SamplingStrategy:
                 if len(top_50) > 0:
                     sampled = top_50.sample(
                         n=min(count, len(top_50)),
-                        random_state=random.randint(0, 1000)
+                        random_state=random.randint(0, 1000000)
                     )
                 else:
                     sampled = cat_novels_sorted.head(count)
@@ -245,7 +244,7 @@ class SamplingStrategy:
                 )
                 sampled = top_novels.sample(
                     n=min(count, len(top_novels)),
-                    random_state=random.randint(0, 1000)
+                    random_state=random.randint(0, 1000000)
                 )
             result.extend(sampled.to_dict('records'))
 
@@ -268,7 +267,7 @@ class SamplingStrategy:
                     if len(top_50) > 0:
                         sampled = top_50.sample(
                             n=min(count, len(top_50)),
-                            random_state=random.randint(0, 1000)
+                            random_state=random.randint(0, 1000000)
                         )
                     else:
                         sampled = cat_novels_sorted.head(count)
@@ -279,7 +278,7 @@ class SamplingStrategy:
                     )
                     sampled = top_novels.sample(
                         n=min(count, len(top_novels)),
-                        random_state=random.randint(0, 1000)
+                        random_state=random.randint(0, 1000000)
                     )
                 result.extend(sampled.to_dict('records'))
 
@@ -287,7 +286,8 @@ class SamplingStrategy:
 
     def get_recent_updates(
         self, user_id=None, channel=None, category=None,
-        preferred_categories=None, n=12, days=30, skip_cache=False
+        preferred_categories=None, n=12, days=30, skip_cache=False,
+        extra_exclude_ids=None
     ):
         """最新更新推荐"""
         if preferred_categories and isinstance(preferred_categories, list):
@@ -301,9 +301,7 @@ class SamplingStrategy:
             if cached:
                 return cached
 
-        exclude_ids = []
-        if user_id:
-            exclude_ids = self.engine.get_user_reading_history(user_id)
+        
 
         result = self.get_hot_recommendations(
             user_id=user_id,
@@ -312,7 +310,8 @@ class SamplingStrategy:
             preferred_categories=preferred_categories,
             n=n,
             skip_cache=skip_cache,
-            sort_by_time=True
+            sort_by_time=True,
+            extra_exclude_ids=extra_exclude_ids
         )
 
         if not skip_cache:

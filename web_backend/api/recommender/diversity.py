@@ -57,7 +57,7 @@ class DiversityHandler:
                         min(20, len(cat_novels)),
                         'all_recommend' if 'all_recommend' in cat_novels.columns else 'week_recommend'
                     )
-                    sampled = cat_novels_sorted.sample(n=1, random_state=random.randint(0, 1000))
+                    sampled = cat_novels_sorted.sample(n=1, random_state=random.randint(0, 1000000))
                     diversity_recs.append(sampled)
 
             if diversity_recs:
@@ -121,7 +121,7 @@ class DiversityHandler:
                             cat_novels_sorted = cat_novels.sort_values('up_time', ascending=False)
                             top_50 = cat_novels_sorted.head(50)
                             if len(top_50) > 0:
-                                sampled = top_50.sample(n=1, random_state=random.randint(0, 1000))
+                                sampled = top_50.sample(n=1, random_state=random.randint(0, 1000000))
                             else:
                                 sampled = cat_novels_sorted.head(1)
                         else:
@@ -129,7 +129,7 @@ class DiversityHandler:
                                 min(20, len(cat_novels)),
                                 'all_recommend' if 'all_recommend' in cat_novels.columns else 'week_recommend'
                             )
-                            sampled = cat_novels_sorted.sample(n=1, random_state=random.randint(0, 1000))
+                            sampled = cat_novels_sorted.sample(n=1, random_state=random.randint(0, 1000000))
                         diversity_recs.extend(sampled.to_dict('records'))
         else:
             unexplored_categories = set(self.engine.novel_info['category'].unique()) - read_categories
@@ -147,7 +147,7 @@ class DiversityHandler:
                             cat_novels_sorted = cat_novels.sort_values('up_time', ascending=False)
                             top_50 = cat_novels_sorted.head(50)
                             if len(top_50) > 0:
-                                sampled = top_50.sample(n=1, random_state=random.randint(0, 1000))
+                                sampled = top_50.sample(n=1, random_state=random.randint(0, 1000000))
                             else:
                                 sampled = cat_novels_sorted.head(1)
                         else:
@@ -155,7 +155,7 @@ class DiversityHandler:
                                 min(20, len(cat_novels)),
                                 'all_recommend' if 'all_recommend' in cat_novels.columns else 'week_recommend'
                             )
-                            sampled = cat_novels_sorted.sample(n=1, random_state=random.randint(0, 1000))
+                            sampled = cat_novels_sorted.sample(n=1, random_state=random.randint(0, 1000000))
                         diversity_recs.extend(sampled.to_dict('records'))
 
         if diversity_recs:

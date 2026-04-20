@@ -355,7 +355,7 @@ class Recommender:
             for cat in list(unexplored)[:diversity_count]:
                 cat_books = self.novel_info[self.novel_info['category'] == cat]
                 if not cat_books.empty:
-                    diversity_books.append(cat_books.sample(n=1, random_state=random.randint(0, 1000)))
+                    diversity_books.append(cat_books.sample(n=1, random_state=random.randint(0, 1000000)))
             
             if diversity_books:
                 diversity_df = pd.concat(diversity_books, ignore_index=True)
@@ -380,7 +380,7 @@ class Recommender:
         if candidates.empty:
             return pd.DataFrame()
         
-        return candidates.sample(n=min(n, len(candidates)), random_state=random.randint(0, 1000))
+        return candidates.sample(n=min(n, len(candidates)), random_state=random.randint(0, 1000000))
     
     def get_latest_updates(self, channel: Optional[int] = None, category: Optional[str] = None,
                            n: int = 12, days: int = 30, exclude_novels: Optional[List] = None) -> pd.DataFrame:

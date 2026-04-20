@@ -71,11 +71,23 @@ DATABASES = {
     }
 }
 
-# 缓存配置 - 使用本地内存缓存（无需 Redis）
+# Redis缓存配置
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
+
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "novel-recommender-cache",
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,  # 连接超时（秒）
+            "SOCKET_TIMEOUT": 5,          # 读写超时（秒）
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100},
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            "SERIALIZER": "django_redis.serializers.pickle.PickleSerializer",
+            "PICKLE_VERSION": -1,  # 使用最高pickle协议
+        },
+        "KEY_PREFIX": "novel_recommender",
     }
 }
 

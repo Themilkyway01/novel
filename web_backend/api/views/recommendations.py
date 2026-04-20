@@ -128,13 +128,21 @@ def hot_novels_view(request):
 
     if random_sample:
         user_id = request.query_params.get('user_id', None)
+        exclude_param = request.query_params.get('exclude', '')
+        extra_exclude_ids = []
+        if exclude_param:
+            try:
+                extra_exclude_ids = [int(x.strip()) for x in exclude_param.split(',') if x.strip()]
+            except ValueError:
+                extra_exclude_ids = []
         novels = recommendation_engine.get_hot_recommendations(
             user_id=int(user_id) if user_id else None,
             channel=int(channel) if channel else None,
             category=category,
             preferred_categories=preferred_categories,
             n=n,
-            skip_cache=timestamp is not None
+            skip_cache=timestamp is not None,
+            extra_exclude_ids=extra_exclude_ids
         )
     else:
         from ..models import NovelInfo
