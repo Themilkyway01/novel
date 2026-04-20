@@ -87,8 +87,7 @@ class RecommendationEngine:
                 (self.novel_info['tags'].fillna('') if 'tags' in self.novel_info.columns else '') + ' ' +
                 (self.novel_info['introduction'].fillna('') if 'introduction' in self.novel_info.columns else '')
             )
-            # 中文文本预处理：分词、去停用词
-            self.novel_info['content'] = self.novel_info['content'].apply(preprocess_chinese_text)
+            # 注意：TF-IDF 矩阵已从文件加载，无需重新预处理文本
 
             self._build_category_cache()
 

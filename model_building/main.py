@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from recommender import (
     add_rating_column, filter_sparse_data,
     prepare_surprise_data, train_evaluate_models,
+    tune_svd_factors,
     Recommender, UserProfileManager
 )
 from api import RecommendationAPI, load_recommendation_api
@@ -39,23 +40,53 @@ def load_data_from_db():
 
 def train_model(novel_info: pd.DataFrame, user_behavior: pd.DataFrame):
     """训练推荐模型"""
+    import json
+    import os
+    
     print("\n=== 数据预处理 ===")
     user_behavior, thresholds = add_rating_column(user_behavior)
     filtered, active_users, popular_novels, user_gender_map = filter_sparse_data(user_behavior)
     
     print("\n=== 模型训练 ===")
     data = prepare_surprise_data(filtered)
-    best_model, results = train_evaluate_models(data)
+    
+    # SVD隐因子数调优实验
+    svd_best_model, best_n_factors, tuning_results = tune_svd_factors(data)
+    print(f"\nSVD调优结果：")
+    for n_factors, metrics in tuning_results.items():
+        print(f"  隐因子数 {n_factors}: RMSE={metrics['rmse']:.4f}, MAE={metrics['mae']:.4f}, Recall={metrics['recall']:.4f}, NDCG={metrics['ndcg']:.4f}")
+    print(f"  最优隐因子数: {best_n_factors}, RMSE: {tuning_results[best_n_factors]['rmse']:.4f}, Recall: {tuning_results[best_n_factors]['recall']:.4f}, NDCG: {tuning_results[best_n_factors]['ndcg']:.4f}")
+
+    # 保存调优结果到文件
+    tuning_report = {
+        'best_n_factors': best_n_factors,
+        'best_rmse': tuning_results[best_n_factors]['rmse'],
+        'best_mae': tuning_results[best_n_factors]['mae'],
+        'best_recall': tuning_results[best_n_factors]['recall'],
+        'best_ndcg': tuning_results[best_n_factors]['ndcg'],
+        'all_results': {
+            str(n_factors): {'rmse': metrics['rmse'], 'mae': metrics['mae'], 'recall': metrics['recall'], 'ndcg': metrics['ndcg']}
+            for n_factors, metrics in tuning_results.items()
+        }
+    }
+    with open('svd_tuning_report.json', 'w', encoding='utf-8') as f:
+        json.dump(tuning_report, f, indent=2, ensure_ascii=False)
+    print("调优报告已保存至 svd_tuning_report.json")
+    
+    # 使用最优隐因子数训练所有模型并比较（用于评估）
+    best_model, results = train_evaluate_models(data, svd_n_factors=best_n_factors)
     
     print("\n=== 模型评估结果 ===")
     for name, metrics in results.items():
-        print(f"{name}: RMSE={metrics['rmse']:.4f}, MAE={metrics['mae']:.4f}")
-    print(f"\n最佳模型：{best_model.__class__.__name__}")
+        print(f"{name}: RMSE={metrics['rmse']:.4f}, MAE={metrics['mae']:.4f}, Recall={metrics['recall']:.4f}, NDCG={metrics['ndcg']:.4f}")
+    print(f"\n最佳模型（比较结果）：{best_model.__class__.__name__}")
     
-    # 保存模型
+    # 保存模型（使用最优隐因子数的SVD模型）
     print("\n保存模型...")
-    recommender = Recommender(best_model, novel_info, filtered, user_gender_map)
+    # 使用调优得到的最佳SVD模型
+    recommender = Recommender(svd_best_model, novel_info, filtered, user_gender_map)
     recommender.save('svd_model.pkl', 'tfidf.pkl')
+    print(f"已保存最优SVD模型（隐因子数={best_n_factors}）至 svd_model.pkl")
     
     return recommender, filtered, user_gender_map
 
