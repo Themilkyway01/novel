@@ -61,7 +61,7 @@ echo [2/3] 启动 Django 后端...
 cd web_backend
 start "Django Backend" cmd /k "call venv\Scripts\activate && python manage.py runserver 0.0.0.0:8000"
 cd ..
-echo ✓ 后端已启动：http://localhost:8000/api
+echo ✓ 后端已启动：http://localhost:8000/admin/
 
 :: 启动 Vue 前端
 echo [3/3] 启动 Vue 前端...
@@ -76,7 +76,6 @@ echo     系统启动完成！
 echo.
 echo     Redis 缓存: redis://127.0.0.1:6379/1
 echo     访问地址：http://localhost:3000
-echo     管理员：admin / admin123
 echo ========================================
 echo.
 pause
